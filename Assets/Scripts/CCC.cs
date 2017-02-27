@@ -4,8 +4,9 @@ using UnityEngine;
 using System;
 using Rewired;
 using DG.Tweening;
+using UnityEngine.Networking;
 
-public class CCC : MonoBehaviour
+public class CCC : NetworkBehaviour
 {
 	[Header("Camera Settings")]
 	[Tooltip("Sensibilité de la caméra (lorsqu'on la contrôle).")]
@@ -44,6 +45,12 @@ public class CCC : MonoBehaviour
 	[Tooltip("Force du Dash sur le côté. Contrairement au Dash avant, ce n'est pas un multiplicateur (pas besoin car la vitesse latérale ne varie pas).")]
 	public float DashSideForce = 7f;
 
+	[Header("Health")]
+	public float HealthTotal = 150;
+	[HideInInspector]
+	public float Health;
+	public float KnockbackOnGround = 5;
+
 	[Header("Stuff")]
 	[Tooltip("Durée que met le Player à effectuer une rotation nécessaire pour suivre le chemin (dalle).")]
 	public float RotationSpeed = 0.5f;
@@ -63,6 +70,7 @@ public class CCC : MonoBehaviour
 	public Transform PlayerTiltZ;
 	public Transform PlayerRotY;
 	public Transform CamRotX;
+	public Transform Camera;
 	public Transform GroundCheck;
 
 	[Header("Status")]
@@ -93,9 +101,11 @@ public class CCC : MonoBehaviour
 	float _velocityGravity = 0;
 	Vector3 _dashVelocity2D = Vector3.zero;
 	float _currentAcceleration = 0;
+	Vector3 _knockbackVelocity;
 
 	float _wallAccelerationJumpDirection = 1;
 
+	float _knockbackCooldown = 0;
 	float _wallRunningBuffer = 0;
 	float _jumpBuffer = -1;
 	float _jumpTime;
@@ -107,21 +117,26 @@ public class CCC : MonoBehaviour
 	// Use this for initialization
 	void Start()
 	{
-		_player = ReInput.players.GetPlayer(0);
-		_body = GetComponent<Rigidbody>();
+		if (isLocalPlayer) {
+			Health = HealthTotal;
+			_player = ReInput.players.GetPlayer(0);
+			_body = GetComponent<Rigidbody>();
 
-		Cursor.lockState = CursorLockMode.None;
-		Cursor.lockState = CursorLockMode.Locked;
-		_yRotation = _body.rotation.eulerAngles.y;
+			Cursor.lockState = CursorLockMode.None;
+			Cursor.lockState = CursorLockMode.Locked;
+			_yRotation = _body.rotation.eulerAngles.y;
 
-		_instantRotation = transform.eulerAngles;
+			_instantRotation = transform.eulerAngles;
+		}
+		else {
+			Destroy(Camera);
+		}
 	}
 
 	// Update is called once per frame
 	void Update()
 	{
-		//Seulement si le jeu n'est pas en pause
-		if (!_pause) {
+		if (isLocalPlayer) {
 
 			//Checking Air/Ground State & GRAVITY---------------
 			if (!_isGrounded) {
@@ -139,6 +154,10 @@ public class CCC : MonoBehaviour
 			}
 			else {
 				_isGrounded = Physics.CheckSphere(GroundCheck.position, GroundCheckRadius, Ground);
+			}
+
+			if (_isGrounded && (_knockbackCooldown <= 0)) {
+				_knockbackVelocity = Vector3.zero;
 			}
 
 			//ROTATION-------------------------------------------
@@ -274,6 +293,7 @@ public class CCC : MonoBehaviour
 			}
 
 			//DASH--------------------------------------------------
+			/*
 			if (_player.GetButton ("Dash") && _canDash && !_isGrounded && !_isWallRunning) {
 				_canDash = false;
 				_isDashing = true;
@@ -291,24 +311,27 @@ public class CCC : MonoBehaviour
 					_dashVelocity2D = PlayerRotY.forward * DashForwardMultiplier * _player.GetAxisRaw("Move Vertical");
 				}
 			}
-		}
+			*/
 
-		//TESTING STUFF-----------------------------------------
-		if (Input.GetKey(KeyCode.T)) {
 
+			//TESTING STUFF-----------------------------------------
+			if (Input.GetKey(KeyCode.T)) {
+
+			}
 		}
 	}
 
 	void FixedUpdate()
 	{
-		//Seulement si le jeu n'est pas en pause
-		if (!_pause) {
+		if (isLocalPlayer) {
+
+			_knockbackCooldown --;
 
 			//MOUVEMENT & JUMP & GRAVITY-----------------------------
 			Vector3 newSpeed = Vector3.zero;
 
 			if (!_isDashing) {
-				newSpeed = transform.right * _velocity2D.x + transform.up * _velocityGravity + transform.forward * _velocity2D.z;
+				newSpeed = (transform.right * _velocity2D.x + transform.up * _velocityGravity + transform.forward * _velocity2D.z) + _knockbackVelocity;
 			}
 			else {
 				newSpeed = transform.right * _dashVelocity2D.x + transform.forward * _dashVelocity2D.z;
@@ -318,29 +341,13 @@ public class CCC : MonoBehaviour
 		}
 	}
 
-	public void Pause () {
-		if (!_pause) {
-			_pause = true;
-			_pausedVelocity = _body.velocity;
-			_body.velocity = Vector3.zero;
-		}
-	}
-
-	public void UnPause () {
-		if (_pause) {
-			_pause = false;
-			_body.velocity = _pausedVelocity;
-		}
-	}
-
 	void OnCollisionEnter (Collision collision) {
 
-		if (collision.collider.tag == "Death") {
-			GoToCheckpoint ();
-		}
 	}
 
 	void OnCollisionStay (Collision collision) {
+
+		/*
 		if (collision.collider.tag == "Platform") 
 		{
 			Collider[] _sphereHit = Physics.OverlapSphere (GroundCheck.position, GroundCheckRadius);
@@ -356,20 +363,25 @@ public class CCC : MonoBehaviour
 				}
 			}
 		}
+		*/
 	}
 
 	void OnCollisionExit (Collision collision) {
+
+		/*
 		if (collision.collider.tag == "Platform") {
 			transform.parent = null;
 		}
+		*/
 	}
 
 	void OnTriggerEnter (Collider collider) {
 
 	}
 
-	public void GoToCheckpoint () {
-		gameObject.transform.position = _lastCheckpoint;
-		_body.velocity = Vector3.zero;
+	public void TakeKnockback (Vector3 Knockback, float dammage) {
+		_knockbackCooldown = KnockbackOnGround;
+		_knockbackVelocity = Knockback;
+		Health -= dammage;
 	}
 }
