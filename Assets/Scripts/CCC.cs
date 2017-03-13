@@ -8,52 +8,52 @@ using UnityEngine.Networking;
 
 public class CCC : NetworkBehaviour
 {
-	[Header("Camera Settings")]
-	[Tooltip("Sensibilité de la caméra (lorsqu'on la contrôle).")]
+	[Header ("Camera Settings")]
+	[Tooltip ("Sensibilité de la caméra (lorsqu'on la contrôle).")]
 	public float CameraSpeed = 1f;
 
-	[Header("Mouvement")]
-	[Tooltip("Vitesse frontal au lancement du jeu.")]
+	[Header ("Mouvement")]
+	[Tooltip ("Vitesse frontal au lancement du jeu.")]
 	public float FrontSpeed = 5f;
-	[Tooltip("Vitesse latéral du joueur.")]
+	[Tooltip ("Vitesse latéral du joueur.")]
 	public float SideSpeed = 3f;
 
-	[Header("Jump")]
-	[Tooltip("Force du saut minimum (input le plus court).")]
+	[Header ("Jump")]
+	[Tooltip ("Force du saut minimum (input le plus court).")]
 	public float JumpMinimumForce = 6f;
-	[Tooltip("Force supplémentaire maximal en plus de la force minimal (force du saut minimum + input le plus long).")]
+	[Tooltip ("Force supplémentaire maximal en plus de la force minimal (force du saut minimum + input le plus long).")]
 	public float JumpAddedForce = 11f;
-	[Tooltip("Durée de l'input de Jump le plus long (il faut maintenir le bouton Jump pendant cette durée pour avoir la hauteur de saut maximal).")]
+	[Tooltip ("Durée de l'input de Jump le plus long (il faut maintenir le bouton Jump pendant cette durée pour avoir la hauteur de saut maximal).")]
 	public float JumpButtonPressDuration = 0.5f;
-	[Tooltip("Durée de la Fenêtre de buffer du saut (au cas où le joueur réappuie sur saut juste avant d'atterir).")]
+	[Tooltip ("Durée de la Fenêtre de buffer du saut (au cas où le joueur réappuie sur saut juste avant d'atterir).")]
 	public float JumpBuffer = 0.05f;
-	[Tooltip("Euh... Bah la Gravité quoi.")]
+	[Tooltip ("Euh... Bah la Gravité quoi.")]
 	public float Gravity = 19.81f;
 
-	[Header("Air Control")]
-	[Tooltip("Force du Air Control, vitesse à laquelle on agis sur sa trajectoire en l'air. Si trop élevée," +
-		"on peut immédiatement dépassé la limite et ainsi n'avoir pas d'effet. Si trop basse, bah ya juste pas d'effet.")]
+	[Header ("Air Control")]
+	[Tooltip ("Force du Air Control, vitesse à laquelle on agis sur sa trajectoire en l'air. Si trop élevée," +
+	"on peut immédiatement dépassé la limite et ainsi n'avoir pas d'effet. Si trop basse, bah ya juste pas d'effet.")]
 	public float AirControlPower = 0.25f;
-	[Tooltip("Limite de combien on peut agir sur sa trajectoire en l'air (sans faire les abus avec la Caméra). Plus elle est élévée et plus le air contrôle est permissif et inversement.")]
+	[Tooltip ("Limite de combien on peut agir sur sa trajectoire en l'air (sans faire les abus avec la Caméra). Plus elle est élévée et plus le air contrôle est permissif et inversement.")]
 	public float AirControlLimit = 1f;
 
-	[Header("Health")]
+	[Header ("Health")]
 	public float HealthTotal = 150;
 	[HideInInspector]
 	public float Health;
 	public float KnockbackOnGround = 5;
 
-	[Header("Stuff")]
-	[Tooltip("Radius de la sphère qui check si le Player est au sol.")]
+	[Header ("Stuff")]
+	[Tooltip ("Radius de la sphère qui check si le Player est au sol.")]
 	public float GroundCheckRadius = 0.1f;
-	[Tooltip("Limite de l'angle Y minimale de la caméra lorsque le joueur la contrôle.")]
-	[Range(0f, 90f)]
+	[Tooltip ("Limite de l'angle Y minimale de la caméra lorsque le joueur la contrôle.")]
+	[Range (0f, 90f)]
 	public float BottomAngleLimit = 70f;
-	[Tooltip("Limite de l'angle Y maximale de la caméra lorsque le joueur la contrôle.")]
-	[Range(0f, 90f)]
+	[Tooltip ("Limite de l'angle Y maximale de la caméra lorsque le joueur la contrôle.")]
+	[Range (0f, 90f)]
 	public float TopAngleLimit = 90f;
 
-	[Header("Prog Stuff")]
+	[Header ("Prog Stuff")]
 	public LayerMask Ground;
 	public Transform PlayerTiltZ;
 	public Transform PlayerRotY;
@@ -61,15 +61,15 @@ public class CCC : NetworkBehaviour
 	public Transform GroundCheck;
 	public Transform Camera;
 
-	[Header("Status")]
-	[Tooltip("Le Player est-il au sol ?")]
+	[Header ("Status")]
+	[Tooltip ("Le Player est-il au sol ?")]
 	public bool _isGrounded = false;
-	[Tooltip("Le Player est-il en train de Jump (maximum jusqu'à la Durée de Button Press) ?")]
+	[Tooltip ("Le Player est-il en train de Jump (maximum jusqu'à la Durée de Button Press) ?")]
 	public bool _isJumping = false;
 
 	bool _canJump = true;
 
-	[HideInInspector]
+	//[HideInInspector]
 	public float CurrentSpeed = 0;
 
 	Rigidbody _body;
@@ -87,12 +87,12 @@ public class CCC : NetworkBehaviour
 	float _xRotation = 0f;
 
 	// Use this for initialization
-	void Start()
+	void Start ()
 	{
 		if (isLocalPlayer) {
 			Health = HealthTotal;
-			_player = ReInput.players.GetPlayer(0);
-			_body = GetComponent<Rigidbody>();
+			_player = ReInput.players.GetPlayer (0);
+			_body = GetComponent<Rigidbody> ();
 
 			Cursor.lockState = CursorLockMode.None;
 			Cursor.lockState = CursorLockMode.Locked;
@@ -106,25 +106,26 @@ public class CCC : NetworkBehaviour
 	}
 
 	// Update is called once per frame
-	void Update()
+	void Update ()
 	{
+
+		CurrentSpeed = _speed.magnitude;
+
 		if (isLocalPlayer) {
 
 			//Checking Air/Ground State & GRAVITY---------------
 			if (!_isGrounded) {
-				_isGrounded = Physics.CheckSphere(GroundCheck.position, GroundCheckRadius, Ground);
+				_isGrounded = Physics.CheckSphere (GroundCheck.position, GroundCheckRadius, Ground);
 				_canJump = false;
 
 				if (_isGrounded) {
 					_velocityGravity = -Gravity * 0.1f;
 					_canJump = true;
-				}
-				else {
+				} else {
 					_velocityGravity -= Gravity * Time.deltaTime;
 				}
-			}
-			else {
-				_isGrounded = Physics.CheckSphere(GroundCheck.position, GroundCheckRadius, Ground);
+			} else {
+				_isGrounded = Physics.CheckSphere (GroundCheck.position, GroundCheckRadius, Ground);
 			}
 
 			if (_isGrounded && (_knockbackCooldown <= 0)) {
@@ -138,8 +139,8 @@ public class CCC : NetworkBehaviour
 				float rotx;
 				float roty;
 
-				rotx = _player.GetAxis("Look Horizontal") * CameraSpeed * 0.1f;
-				roty = -_player.GetAxis("Look Vertical") * CameraSpeed * 0.1f;
+				rotx = _player.GetAxis ("Look Horizontal") * CameraSpeed * 0.1f;
+				roty = -_player.GetAxis ("Look Vertical") * CameraSpeed * 0.1f;
 
 				//we store the rotation along Y axis
 				//because physics functions have to be called in FixedUpdate
@@ -153,7 +154,7 @@ public class CCC : NetworkBehaviour
 				//we can directly modify the transform
 				//note also that the camera has no collider attached to it that could interfere with the rigidbody
 				_xRotation += roty * Time.deltaTime * Mathf.Rad2Deg;
-				_xRotation = Mathf.Clamp(_xRotation, -TopAngleLimit, BottomAngleLimit);
+				_xRotation = Mathf.Clamp (_xRotation, -TopAngleLimit, BottomAngleLimit);
 				rot = CamRotX.localEulerAngles;
 				rot.x = _xRotation;
 				CamRotX.localEulerAngles = rot;
@@ -181,7 +182,7 @@ public class CCC : NetworkBehaviour
 			//AirControl
 			else {
 				_speed = PlayerRotY.localRotation * Vector3.forward * _player.GetAxisRaw ("Move Vertical") +
-					PlayerRotY.localRotation * Vector3.right * _player.GetAxisRaw ("Move Horizontal");
+				PlayerRotY.localRotation * Vector3.right * _player.GetAxisRaw ("Move Horizontal");
 				if (_speed.magnitude > 1) {
 					_speed.Normalize ();
 				}
@@ -195,8 +196,7 @@ public class CCC : NetworkBehaviour
 					if (_proj < AirControlLimit) {
 						_velocity2D += _speed;
 					}
-				}
-				else {
+				} else {
 					_velocity2D += _speed;
 				}
 
@@ -207,6 +207,7 @@ public class CCC : NetworkBehaviour
 				}
 
 				_velocity2D = newVelocity;
+				CurrentSpeed = newVelocity.magnitude;
 			}
 
 			//JUMP--------------------------------------------------
@@ -218,12 +219,10 @@ public class CCC : NetworkBehaviour
 					_velocityGravity = JumpMinimumForce;
 					_canJump = false;
 					_jumpTime = JumpButtonPressDuration;
-				}
-				else {
+				} else {
 					_jumpBuffer = JumpBuffer;
 				}
-			}
-			else if (_jumpBuffer >= 0) {
+			} else if (_jumpBuffer >= 0) {
 
 				if (!_isJumping && _canJump) {
 					_jumpBuffer = -1;
@@ -231,38 +230,33 @@ public class CCC : NetworkBehaviour
 					_velocityGravity = JumpMinimumForce;
 					_canJump = false;
 					_jumpTime = JumpButtonPressDuration;
-				}
-				else {
+				} else {
 					_jumpBuffer -= Time.deltaTime;
 				}
-			}
-			else if (_player.GetButton ("Jump") && _isJumping)
-			{
+			} else if (_player.GetButton ("Jump") && _isJumping) {
 				if (_jumpTime <= Time.deltaTime) {
 					_isJumping = false;
 					_velocityGravity += _jumpTime * JumpAddedForce;
-				}
-				else {
+				} else {
 					_jumpTime -= Time.deltaTime;
 					_velocityGravity += Time.deltaTime * JumpAddedForce;
 				}
-			}
-			else {
+			} else {
 				_isJumping = false;
 			}
 				
 			//TESTING STUFF-----------------------------------------
-			if (Input.GetKey(KeyCode.T)) {
+			if (Input.GetKey (KeyCode.T)) {
 
 			}
 		}
 	}
 
-	void FixedUpdate()
+	void FixedUpdate ()
 	{
 		if (isLocalPlayer) {
 
-			_knockbackCooldown --;
+			_knockbackCooldown--;
 
 			//MOUVEMENT & JUMP & GRAVITY-----------------------------
 			Vector3 newSpeed = Vector3.zero;
@@ -273,11 +267,13 @@ public class CCC : NetworkBehaviour
 		}
 	}
 
-	void OnCollisionEnter (Collision collision) {
+	void OnCollisionEnter (Collision collision)
+	{
 
 	}
 
-	void OnCollisionStay (Collision collision) {
+	void OnCollisionStay (Collision collision)
+	{
 
 		/*
 		if (collision.collider.tag == "Platform") 
@@ -298,7 +294,8 @@ public class CCC : NetworkBehaviour
 		*/
 	}
 
-	void OnCollisionExit (Collision collision) {
+	void OnCollisionExit (Collision collision)
+	{
 
 		/*
 		if (collision.collider.tag == "Platform") {
@@ -307,11 +304,13 @@ public class CCC : NetworkBehaviour
 		*/
 	}
 
-	void OnTriggerEnter (Collider collider) {
+	void OnTriggerEnter (Collider collider)
+	{
 
 	}
 
-	public void TakeKnockback (Vector3 Knockback, float dammage) {
+	public void TakeKnockback (Vector3 Knockback, float dammage)
+	{
 		_knockbackCooldown = KnockbackOnGround;
 		_knockbackVelocity = Knockback;
 		Health -= dammage;
