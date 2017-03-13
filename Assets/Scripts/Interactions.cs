@@ -32,7 +32,7 @@ public class Interactions : NetworkBehaviour {
 		if (isLocalPlayer) {
 
 			if (_canFireRocket && _player.GetButtonDown("Fire")) {
-				CmdFire();
+				CmdFire(RocketSpawn.position, RocketSpawn.rotation);
 				_canFireRocket = false;
 				DOVirtual.DelayedCall(RocketFireSpeed, () =>
 					{
@@ -44,9 +44,9 @@ public class Interactions : NetworkBehaviour {
 	}
 
 	[Command]
-	void CmdFire()
+	void CmdFire(Vector3 myPosition, Quaternion myRotation)
 	{
-		var _rocket = (GameObject)Instantiate(RocketPrefab, RocketSpawn.position, RocketSpawn.rotation);
+		var _rocket = (GameObject)Instantiate(RocketPrefab, myPosition, myRotation);
 		_rocket.transform.GetComponent<Rigidbody>().velocity = _rocket.transform.forward * RocketSpeed;
 		_rocket.transform.rotation *= Quaternion.Euler(90, 0, 0);
 		_rocket.transform.GetComponent<Rocket>().ExplosionRadius = RocketExplosionRadius;

@@ -29,8 +29,18 @@ public class Rocket : MonoBehaviour {
 				{
 					if (_sphereHit[i].tag == "Player" && _sphereHit[i].gameObject != ID) 
 					{
+						Debug.Log ("youhou");
 						Vector3 _originToPoint = _sphereHit[i].transform.position - Contact.position;
 						RaycastHit Hit;
+
+						if (!Physics.Raycast(Contact.position, _originToPoint, out Hit, _originToPoint.magnitude, HardObjects)) {
+							float _knockbackForce  = Knockback * ((ExplosionRadius - _originToPoint.magnitude) / ExplosionRadius);
+							Vector3 _imprimedKnockback = _knockbackForce * _originToPoint.normalized;
+							float _appliedDammage = Dammage * ((ExplosionRadius - _originToPoint.magnitude) / ExplosionRadius);
+							_sphereHit[i].gameObject.GetComponent<CCC>().TakeKnockback(_imprimedKnockback, _appliedDammage);
+						}
+
+						/*
 						Physics.Raycast(Contact.position, _originToPoint, out Hit);
 						if (HardObjects == (HardObjects | (1 << Hit.collider.gameObject.layer))) {
 							float _knockbackForce  = Knockback * ((ExplosionRadius - _originToPoint.magnitude) / ExplosionRadius);
@@ -38,6 +48,7 @@ public class Rocket : MonoBehaviour {
 							float _appliedDammage = Dammage * ((ExplosionRadius - _originToPoint.magnitude) / ExplosionRadius);
 							_sphereHit[i].gameObject.GetComponent<CCC>().TakeKnockback(_imprimedKnockback, _appliedDammage);
 						}
+						*/
 					}
 				}
 			}
