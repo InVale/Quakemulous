@@ -4,15 +4,16 @@ using UnityEngine;
 using System;
 using Rewired;
 using DG.Tweening;
+using UnityEngine.Networking;
 
-public class CCC : MonoBehaviour
+public class CCC : NetworkBehaviour
 {
 	[Header("Camera Settings")]
 	[Tooltip("Sensibilité de la caméra (lorsqu'on la contrôle).")]
 	public float CameraSpeed = 1f;
 
 	[Header("Mouvement")]
-	[Tooltip("Vitesse frontal au lancement du jeu. Aussi seuil minimal de vitesse si le joueur freine.")]
+	[Tooltip("Vitesse frontal au lancement du jeu.")]
 	public float FrontSpeed = 5f;
 	[Tooltip("Vitesse latéral du joueur.")]
 	public float SideSpeed = 3f;
@@ -30,25 +31,19 @@ public class CCC : MonoBehaviour
 	public float Gravity = 19.81f;
 
 	[Header("Air Control")]
-	[Tooltip("Force du Air Control, vitesse à laquelle on agis sur sa trajectoire en l'air. Si trop élévé," +
+	[Tooltip("Force du Air Control, vitesse à laquelle on agis sur sa trajectoire en l'air. Si trop élevée," +
 		"on peut immédiatement dépassé la limite et ainsi n'avoir pas d'effet. Si trop basse, bah ya juste pas d'effet.")]
 	public float AirControlPower = 0.25f;
 	[Tooltip("Limite de combien on peut agir sur sa trajectoire en l'air (sans faire les abus avec la Caméra). Plus elle est élévée et plus le air contrôle est permissif et inversement.")]
 	public float AirControlLimit = 1f;
 
-	[Header("Dash")]
-	[Tooltip("Durée du Dash. Influence sur la distance couverte vu qu'il fonctionne par vélocité.")]
-	public float DashDuration = 0.25f;
-	[Tooltip("Multiplicateur de la vitesse actuelle pour le Dash avant. Plus le joueur vas vite et plus le Dash avant ira vite et loin.")]
-	public float DashForwardMultiplier = 7f;
-	[Tooltip("Force du Dash sur le côté. Contrairement au Dash avant, ce n'est pas un multiplicateur (pas besoin car la vitesse latérale ne varie pas).")]
-	public float DashSideForce = 7f;
+	[Header("Health")]
+	public float HealthTotal = 150;
+	[HideInInspector]
+	public float Health;
+	public float KnockbackOnGround = 5;
 
 	[Header("Stuff")]
-	[Tooltip("Durée que met le Player à effectuer une rotation nécessaire pour suivre le chemin (dalle).")]
-	public float RotationSpeed = 0.5f;
-	[Tooltip("De combien de degrée le joueur se penche lorsqu'il prend appuie sur un mur d'accélération.")]
-	public float TiltValue = 5f;
 	[Tooltip("Radius de la sphère qui check si le Player est au sol.")]
 	public float GroundCheckRadius = 0.1f;
 	[Tooltip("Limite de l'angle Y minimale de la caméra lorsque le joueur la contrôle.")]
@@ -64,22 +59,15 @@ public class CCC : MonoBehaviour
 	public Transform PlayerRotY;
 	public Transform CamRotX;
 	public Transform GroundCheck;
+	public Transform Camera;
 
 	[Header("Status")]
 	[Tooltip("Le Player est-il au sol ?")]
 	public bool _isGrounded = false;
-	[Tooltip("Le Player est-il en train de Dash ?")]
-	public bool _isDashing = false;
 	[Tooltip("Le Player est-il en train de Jump (maximum jusqu'à la Durée de Button Press) ?")]
 	public bool _isJumping = false;
-	[Tooltip("Le Player est-il en train de courir à un mur d'accélération ?")]
-	public bool _isWallRunning = false;
 
 	bool _canJump = true;
-	bool _canDash = true;
-
-	bool _pause = false;
-	Vector3 _pausedVelocity = Vector3.zero;
 
 	[HideInInspector]
 	public float CurrentSpeed = 0;
@@ -88,40 +76,39 @@ public class CCC : MonoBehaviour
 	Player _player;
 
 	Vector3 _speed;
-	Vector3 _instantRotation;
 	Vector3 _velocity2D = Vector3.zero;
 	float _velocityGravity = 0;
-	Vector3 _dashVelocity2D = Vector3.zero;
-	float _currentAcceleration = 0;
+	Vector3 _knockbackVelocity;
 
-	float _wallAccelerationJumpDirection = 1;
-
-	float _wallRunningBuffer = 0;
+	float _knockbackCooldown = 0;
 	float _jumpBuffer = -1;
 	float _jumpTime;
 	float _yRotation = 0f;
 	float _xRotation = 0f;
 
-	Vector3 _lastCheckpoint = Vector3.zero;
-
 	// Use this for initialization
 	void Start()
 	{
-		_player = ReInput.players.GetPlayer(0);
-		_body = GetComponent<Rigidbody>();
+		if (isLocalPlayer) {
+			Health = HealthTotal;
+			_player = ReInput.players.GetPlayer(0);
+			_body = GetComponent<Rigidbody>();
 
-		Cursor.lockState = CursorLockMode.None;
-		Cursor.lockState = CursorLockMode.Locked;
-		_yRotation = _body.rotation.eulerAngles.y;
+			Cursor.lockState = CursorLockMode.None;
+			Cursor.lockState = CursorLockMode.Locked;
+			_yRotation = _body.rotation.eulerAngles.y;
 
-		_instantRotation = transform.eulerAngles;
+			Camera = GameObject.FindGameObjectWithTag ("MainCamera").transform;
+			Camera.parent = CamRotX;
+			Camera.localPosition = Vector3.zero;
+			Camera.localEulerAngles = Vector3.zero;
+		}
 	}
 
 	// Update is called once per frame
 	void Update()
 	{
-		//Seulement si le jeu n'est pas en pause
-		if (!_pause) {
+		if (isLocalPlayer) {
 
 			//Checking Air/Ground State & GRAVITY---------------
 			if (!_isGrounded) {
@@ -131,14 +118,17 @@ public class CCC : MonoBehaviour
 				if (_isGrounded) {
 					_velocityGravity = -Gravity * 0.1f;
 					_canJump = true;
-					_canDash = true;
 				}
-				else if (!_isDashing && !_isWallRunning) {
+				else {
 					_velocityGravity -= Gravity * Time.deltaTime;
 				}
 			}
 			else {
 				_isGrounded = Physics.CheckSphere(GroundCheck.position, GroundCheckRadius, Ground);
+			}
+
+			if (_isGrounded && (_knockbackCooldown <= 0)) {
+				_knockbackVelocity = Vector3.zero;
 			}
 
 			//ROTATION-------------------------------------------
@@ -170,20 +160,26 @@ public class CCC : MonoBehaviour
 			}
 
 			//MOVEMENT-----------------------------------------------
-			/*if (_isWallRunning) {
-				_velocity2D = Vector3.forward * CurrentSpeed;
-			}*/
 			if (_isGrounded) {
 
 				Vector3 vertical = PlayerRotY.localRotation * Vector3.forward * _player.GetAxisRaw ("Move Vertical");
 				Vector3 horizontal = PlayerRotY.localRotation * Vector3.right * _player.GetAxisRaw ("Move Horizontal");
 
 				_speed = vertical * FrontSpeed + horizontal * SideSpeed;
+
+				float bufferHigherSpeed = FrontSpeed;
+				if (SideSpeed > FrontSpeed) {
+					bufferHigherSpeed = SideSpeed;
+				}
+
+				if (_speed.magnitude > bufferHigherSpeed) {
+					_speed = _speed.normalized * bufferHigherSpeed;
+				}
+
 				_velocity2D = _speed;
-				//_velocity2D = _speed.normalized * (vertical * FrontSpeed).magnitude;
 			}
 			//AirControl
-			else if (!_isDashing) {
+			else {
 				_speed = PlayerRotY.localRotation * Vector3.forward * _player.GetAxisRaw ("Move Vertical") +
 					PlayerRotY.localRotation * Vector3.right * _player.GetAxisRaw ("Move Horizontal");
 				if (_speed.magnitude > 1) {
@@ -214,24 +210,6 @@ public class CCC : MonoBehaviour
 			}
 
 			//JUMP--------------------------------------------------
-			/*if (_wallRunningBuffer > 0) {
-				_wallRunningBuffer -= Time.deltaTime;
-			}
-
-			if (_isWallRunning) {
-				
-				if (_player.GetButtonDown("Jump")) {
-					Vector3 _newSpeed = (Vector3.right * 3 * _wallAccelerationJumpDirection) + (Vector3.forward * CurrentSpeed);
-					_velocity2D = _newSpeed.normalized * CurrentSpeed;
-					_jumpBuffer = -1;
-					_velocityGravity = JumpMinimumForce;
-					_wallRunningBuffer = 0.5f;
-					_isWallRunning = false;
-
-					PlayerTiltZ.DOKill ();
-					PlayerTiltZ.DORotate (new Vector3(0, 0, 0), RotationSpeed);
-				}
-			}*/
 			if (_player.GetButtonDown ("Jump") && !_isJumping) {
 					
 				if (_canJump) {
@@ -272,75 +250,36 @@ public class CCC : MonoBehaviour
 			else {
 				_isJumping = false;
 			}
+				
+			//TESTING STUFF-----------------------------------------
+			if (Input.GetKey(KeyCode.T)) {
 
-			//DASH--------------------------------------------------
-			if (_player.GetButton ("Dash") && _canDash && !_isGrounded && !_isWallRunning) {
-				_canDash = false;
-				_isDashing = true;
-				_velocityGravity = 0;
-
-				DOVirtual.DelayedCall(DashDuration, () =>
-					{
-						_isDashing = false;
-					});
-
-				if (_player.GetAxisRaw("Move Horizontal") != 0) {
-					_dashVelocity2D = PlayerRotY.right * _player.GetAxisRaw("Move Horizontal") * DashSideForce;
-				}
-				else {
-					_dashVelocity2D = PlayerRotY.forward * DashForwardMultiplier * _player.GetAxisRaw("Move Vertical");
-				}
 			}
-		}
-
-		//TESTING STUFF-----------------------------------------
-		if (Input.GetKey(KeyCode.T)) {
-
 		}
 	}
 
 	void FixedUpdate()
 	{
-		//Seulement si le jeu n'est pas en pause
-		if (!_pause) {
+		if (isLocalPlayer) {
+
+			_knockbackCooldown --;
 
 			//MOUVEMENT & JUMP & GRAVITY-----------------------------
 			Vector3 newSpeed = Vector3.zero;
 
-			if (!_isDashing) {
-				newSpeed = transform.right * _velocity2D.x + transform.up * _velocityGravity + transform.forward * _velocity2D.z;
-			}
-			else {
-				newSpeed = transform.right * _dashVelocity2D.x + transform.forward * _dashVelocity2D.z;
-			}
+			newSpeed = (transform.right * _velocity2D.x + transform.up * _velocityGravity + transform.forward * _velocity2D.z) + _knockbackVelocity;
 
 			_body.velocity = newSpeed;	
 		}
 	}
 
-	public void Pause () {
-		if (!_pause) {
-			_pause = true;
-			_pausedVelocity = _body.velocity;
-			_body.velocity = Vector3.zero;
-		}
-	}
-
-	public void UnPause () {
-		if (_pause) {
-			_pause = false;
-			_body.velocity = _pausedVelocity;
-		}
-	}
-
 	void OnCollisionEnter (Collision collision) {
 
-		if (collision.collider.tag == "Death") {
-			GoToCheckpoint ();
-		}
 	}
 
 	void OnCollisionStay (Collision collision) {
+
+		/*
 		if (collision.collider.tag == "Platform") 
 		{
 			Collider[] _sphereHit = Physics.OverlapSphere (GroundCheck.position, GroundCheckRadius);
@@ -356,20 +295,25 @@ public class CCC : MonoBehaviour
 				}
 			}
 		}
+		*/
 	}
 
 	void OnCollisionExit (Collision collision) {
+
+		/*
 		if (collision.collider.tag == "Platform") {
 			transform.parent = null;
 		}
+		*/
 	}
 
 	void OnTriggerEnter (Collider collider) {
 
 	}
 
-	public void GoToCheckpoint () {
-		gameObject.transform.position = _lastCheckpoint;
-		_body.velocity = Vector3.zero;
+	public void TakeKnockback (Vector3 Knockback, float dammage) {
+		_knockbackCooldown = KnockbackOnGround;
+		_knockbackVelocity = Knockback;
+		Health -= dammage;
 	}
 }
