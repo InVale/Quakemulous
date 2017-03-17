@@ -1,19 +1,20 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class Rocket : MonoBehaviour {
+public class Rocket : NetworkBehaviour {
 
 	public Transform Contact;
 	public LayerMask HardObjects;
 
-	[HideInInspector]
+	[SyncVar]
 	public float ExplosionRadius = 1;
-	[HideInInspector]
+	[SyncVar]
 	public float Knockback = 1;
-	[HideInInspector]
-	public float Dammage = 1;
-	[HideInInspector]
+	[SyncVar]
+	public float Damage = 1;
+	[SyncVar]
 	public GameObject ID;
 
 	void OnCollisionEnter (Collision Collision) {
@@ -29,26 +30,19 @@ public class Rocket : MonoBehaviour {
 				{
 					if (_sphereHit[i].tag == "Player" && _sphereHit[i].gameObject != ID) 
 					{
-						Debug.Log ("youhou");
 						Vector3 _originToPoint = _sphereHit[i].transform.position - Contact.position;
 						RaycastHit Hit;
 
 						if (!Physics.Raycast(Contact.position, _originToPoint, out Hit, _originToPoint.magnitude, HardObjects)) {
-							float _knockbackForce  = Knockback * ((ExplosionRadius - _originToPoint.magnitude) / ExplosionRadius);
-							Vector3 _imprimedKnockback = _knockbackForce * _originToPoint.normalized;
-							float _appliedDammage = Dammage * ((ExplosionRadius - _originToPoint.magnitude) / ExplosionRadius);
-							_sphereHit[i].gameObject.GetComponent<CCC>().TakeKnockback(_imprimedKnockback, _appliedDammage);
-						}
 
-						/*
-						Physics.Raycast(Contact.position, _originToPoint, out Hit);
-						if (HardObjects == (HardObjects | (1 << Hit.collider.gameObject.layer))) {
-							float _knockbackForce  = Knockback * ((ExplosionRadius - _originToPoint.magnitude) / ExplosionRadius);
-							Vector3 _imprimedKnockback = _knockbackForce * _originToPoint.normalized;
-							float _appliedDammage = Dammage * ((ExplosionRadius - _originToPoint.magnitude) / ExplosionRadius);
-							_sphereHit[i].gameObject.GetComponent<CCC>().TakeKnockback(_imprimedKnockback, _appliedDammage);
+							Vector3 closestPoint = _sphereHit [i].ClosestPointOnBounds (Contact.position);
+
+							float _knockbackForce  = Knockback * ((ExplosionRadius - closestPoint.magnitude) / ExplosionRadius);
+							Debug.Log (ExplosionRadius - closestPoint.magnitude);
+							Vector3 _imprimedKnockback = _knockbackForce * closestPoint.normalized;
+							float _appliedDamage = Damage * ((ExplosionRadius - closestPoint.magnitude) / ExplosionRadius);
+							_sphereHit[i].gameObject.GetComponent<CCC>().TakeKnockback(_imprimedKnockback, _appliedDamage);
 						}
-						*/
 					}
 				}
 			}
