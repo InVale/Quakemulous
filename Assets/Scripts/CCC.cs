@@ -283,17 +283,15 @@ public class CCC : NetworkBehaviour
 	}
 
 	void OnCollisionEnter (Collision collision) {
-
-	}
-
-	void OnCollisionStay (Collision collision) {
-
 		if (Ground == (Ground | (1 << collision.collider.gameObject.layer))) {
 			if (_knockbackCooldown != KnockbackOnGround) {
 				_knockbackCooldown = 0;
 				_knockbackVelocity = Vector3.zero;
 			}
 		}
+	}
+
+	void OnCollisionStay (Collision collision) {
 
 		/*
 		if (collision.collider.tag == "Platform") 

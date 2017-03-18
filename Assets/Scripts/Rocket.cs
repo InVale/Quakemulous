@@ -36,10 +36,10 @@ public class Rocket : NetworkBehaviour {
 						if (!Physics.Raycast(Contact.position, _originToPoint, out Hit, _originToPoint.magnitude, HardObjects)) {
 
 							Vector3 closestPoint = _sphereHit [i].ClosestPointOnBounds (Contact.position);
+							closestPoint = closestPoint - Contact.position;
 
 							float _knockbackForce  = Knockback * ((ExplosionRadius - closestPoint.magnitude) / ExplosionRadius);
-							Debug.Log (ExplosionRadius - closestPoint.magnitude);
-							Vector3 _imprimedKnockback = _knockbackForce * closestPoint.normalized;
+							Vector3 _imprimedKnockback = _knockbackForce * _originToPoint.normalized;
 							float _appliedDamage = Damage * ((ExplosionRadius - closestPoint.magnitude) / ExplosionRadius);
 							_sphereHit[i].gameObject.GetComponent<CCC>().TakeKnockback(_imprimedKnockback, _appliedDamage);
 						}

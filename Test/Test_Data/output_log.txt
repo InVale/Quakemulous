@@ -1,0 +1,66 @@
+Initialize engine version: 5.5.0f3 (38b4efef76f0)
+GfxDevice: creating device client; threaded=1
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.0]
+    Renderer: NVIDIA GeForce GTX 970M (ID=0x13d8)
+    Vendor:   NVIDIA
+    VRAM:     2960 MB
+    Driver:   10.18.14.4170
+Begin MonoManager ReloadAssembly
+Platform assembly: D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\UnityEngine.dll (this message is harmless)
+Loading D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\UnityEngine.dll into Unity Child Domain
+Platform assembly: D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\Assembly-CSharp.dll (this message is harmless)
+Loading D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
+Platform assembly: D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\UnityEngine.UI.dll (this message is harmless)
+Loading D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
+Platform assembly: D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\UnityEngine.Networking.dll (this message is harmless)
+Loading D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
+Platform assembly: D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll (this message is harmless)
+Loading D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll into Unity Child Domain
+Platform assembly: D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\UnityEngine.Analytics.dll (this message is harmless)
+Loading D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\UnityEngine.Analytics.dll into Unity Child Domain
+Platform assembly: D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\DOTween.dll (this message is harmless)
+Loading D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\DOTween.dll into Unity Child Domain
+Platform assembly: D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\DOTween43.dll (this message is harmless)
+Loading D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\DOTween43.dll into Unity Child Domain
+Platform assembly: D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\DOTween46.dll (this message is harmless)
+Loading D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\DOTween46.dll into Unity Child Domain
+Platform assembly: D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\DOTween50.dll (this message is harmless)
+Loading D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\DOTween50.dll into Unity Child Domain
+Platform assembly: D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\Rewired_Core.dll (this message is harmless)
+Loading D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\Rewired_Core.dll into Unity Child Domain
+Platform assembly: D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\Rewired_Windows_Lib.dll (this message is harmless)
+Loading D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\Rewired_Windows_Lib.dll into Unity Child Domain
+- Completed reload, in  0.036 seconds
+Platform assembly: D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\System.Core.dll (this message is harmless)
+Platform assembly: D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\System.dll (this message is harmless)
+desktop: 1920x1080 60Hz; virtual: 3840x1080 at 0,0
+<RI> Initializing input.
+<RI> Input initialized.
+<RI> Initialized touch support.
+UnloadTime: 1.072158 ms
+Non platform assembly: data-11695010 (this message is harmless)
+Fallback handler could not load library D:/Projet/[Unity 5.5.0f3] Quakemulous/Quakemulous/Test/Test_Data/Mono/data-11695010.dll
+Non platform assembly: data-116C3300 (this message is harmless)
+Fallback handler could not load library D:/Projet/[Unity 5.5.0f3] Quakemulous/Quakemulous/Test/Test_Data/Mono/data-116C3300.dll
+Non platform assembly: data-0F1F6020 (this message is harmless)
+Fallback handler could not load library D:/Projet/[Unity 5.5.0f3] Quakemulous/Quakemulous/Test/Test_Data/Mono/data-0F1F6020.dll
+Fallback handler could not load library D:/Projet/[Unity 5.5.0f3] Quakemulous/Quakemulous/Test/Test_Data/Mono/steam_api
+Fallback handler could not load library D:/Projet/[Unity 5.5.0f3] Quakemulous/Quakemulous/Test/Test_Data/Mono/.\steam_api
+Fallback handler could not load library D:/Projet/[Unity 5.5.0f3] Quakemulous/Quakemulous/Test/Test_Data/Mono/steam_api
+Fallback handler could not load library D:/Projet/[Unity 5.5.0f3] Quakemulous/Quakemulous/Test/Test_Data/Mono/libsteam_api
+Fallback handler could not load library D:/Projet/[Unity 5.5.0f3] Quakemulous/Quakemulous/Test/Test_Data/Mono/.\libsteam_api
+Fallback handler could not load library D:/Projet/[Unity 5.5.0f3] Quakemulous/Quakemulous/Test/Test_Data/Mono/libsteam_api
+Fallback handler could not load library D:/Projet/[Unity 5.5.0f3] Quakemulous/Quakemulous/Test/Test_Data/Mono/steam_api
+Fallback handler could not load library D:/Projet/[Unity 5.5.0f3] Quakemulous/Quakemulous/Test/Test_Data/Mono/.\steam_api
+Fallback handler could not load library D:/Projet/[Unity 5.5.0f3] Quakemulous/Quakemulous/Test/Test_Data/Mono/steam_api
+Fallback handler could not load library D:/Projet/[Unity 5.5.0f3] Quakemulous/Quakemulous/Test/Test_Data/Mono/libsteam_api
+Fallback handler could not load library D:/Projet/[Unity 5.5.0f3] Quakemulous/Quakemulous/Test/Test_Data/Mono/.\libsteam_api
+Fallback handler could not load library D:/Projet/[Unity 5.5.0f3] Quakemulous/Quakemulous/Test/Test_Data/Mono/libsteam_api
+Rewired: Searching for compatible XInput library...
+Rewired: Found Xinput1_3.dll.
+Platform assembly: D:\Projet\[Unity 5.5.0f3] Quakemulous\Quakemulous\Test\Test_Data\Managed\System.Xml.dll (this message is harmless)
+Setting up 2 worker threads for Enlighten.
+  Thread -> id: 1744 -> priority: 1 
+  Thread -> id: 2820 -> priority: 1 
+Log: connection {1} has been disconnected by timeout; address {::ffff:127.0.0.1:65120}
