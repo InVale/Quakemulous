@@ -66,11 +66,9 @@ public class CCC : NetworkBehaviour
 	public bool _isGrounded = false;
 	[Tooltip("Le Player est-il en train de Jump (maximum jusqu'à la Durée de Button Press) ?")]
 	public bool _isJumping = false;
+	public float CurrentSpeed = 0;
 
 	bool _canJump = true;
-
-	[HideInInspector]
-	public float CurrentSpeed = 0;
 
 	Rigidbody _body;
 	Player _player;
@@ -109,6 +107,19 @@ public class CCC : NetworkBehaviour
 	void Update()
 	{
 		if (isLocalPlayer) {
+
+			if (Input.GetKeyDown (KeyCode.KeypadPlus)) {
+				CameraSpeed += 0.5f;
+				if (CameraSpeed == 10) {
+					CameraSpeed = 9.5f;
+				}
+			}
+			else if (Input.GetKeyDown (KeyCode.KeypadMinus)) {
+				CameraSpeed -= 0.5f;
+				if (CameraSpeed == 0) {
+					CameraSpeed = 0.5f;
+				}
+			}
 
 			//Checking Air/Ground State & GRAVITY---------------
 			if (!_isGrounded) {
@@ -265,16 +276,19 @@ public class CCC : NetworkBehaviour
 			_knockbackCooldown --;
 
 			//MOUVEMENT & JUMP & GRAVITY-----------------------------
-			Vector3 newSpeed = Vector3.zero;
-
-			newSpeed = (transform.right * _velocity2D.x + transform.up * _velocityGravity + transform.forward * _velocity2D.z) + _knockbackVelocity;
-
+			Vector3 newSpeed = (transform.right * _velocity2D.x + transform.up * _velocityGravity + transform.forward * _velocity2D.z) + _knockbackVelocity;
+			CurrentSpeed = newSpeed.magnitude;
 			_body.velocity = newSpeed;	
 		}
 	}
 
 	void OnCollisionEnter (Collision collision) {
-
+		if (Ground == (Ground | (1 << collision.collider.gameObject.layer))) {
+			if (_knockbackCooldown != KnockbackOnGround) {
+				_knockbackCooldown = 0;
+				_knockbackVelocity = Vector3.zero;
+			}
+		}
 	}
 
 	void OnCollisionStay (Collision collision) {
@@ -311,9 +325,9 @@ public class CCC : NetworkBehaviour
 
 	}
 
-	public void TakeKnockback (Vector3 Knockback, float dammage) {
+	public void TakeKnockback (Vector3 Knockback, float damage) {
 		_knockbackCooldown = KnockbackOnGround;
 		_knockbackVelocity = Knockback;
-		Health -= dammage;
+		Health -= damage;
 	}
 }
