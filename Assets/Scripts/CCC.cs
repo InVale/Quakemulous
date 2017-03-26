@@ -5,6 +5,7 @@ using System;
 using Rewired;
 using DG.Tweening;
 using UnityEngine.Networking;
+using UnityEditor;
 
 public class CCC : NetworkBehaviour
 {
@@ -17,6 +18,8 @@ public class CCC : NetworkBehaviour
 	public float FrontSpeed = 5f;
 	[Tooltip("Vitesse latéral du joueur.")]
 	public float SideSpeed = 3f;
+	public float WallGravityDistance = 0.1f;
+	public float TurnSpeed = 0.1f;
 
 	[Header("Jump")]
 	[Tooltip("Force du saut minimum (input le plus court).")]
@@ -69,6 +72,7 @@ public class CCC : NetworkBehaviour
 	public float CurrentSpeed = 0;
 
 	bool _canJump = true;
+	bool _turning = false;
 
 	Rigidbody _body;
 	Player _player;
@@ -127,7 +131,7 @@ public class CCC : NetworkBehaviour
 				_canJump = false;
 
 				if (_isGrounded) {
-					_velocityGravity = -Gravity * 0.1f;
+					_velocityGravity = 0;
 					_canJump = true;
 				}
 				else {
@@ -140,6 +144,24 @@ public class CCC : NetworkBehaviour
 
 			if (_isGrounded && (_knockbackCooldown <= 0)) {
 				_knockbackVelocity = Vector3.zero;
+			}
+
+			RaycastHit hit;
+			if (!_turning) {
+				if (Physics.Raycast(transform.position, _body.velocity.normalized, out hit, WallGravityDistance * (1 + _body.velocity.magnitude), Ground)) {
+					//EditorApplication.isPaused = true;
+					Debug.DrawRay(transform.position, _body.velocity.normalized, Color.blue, 1);
+					Debug.DrawRay(transform.position, hit.normal, Color.red, 1);
+					if (hit.normal != transform.up) {
+						_turning = true;
+						transform.DOKill();
+						transform.DORotateQuaternion (Quaternion.FromToRotation(transform.up, hit.normal) * transform.rotation, TurnSpeed);
+						DOVirtual.DelayedCall(TurnSpeed, () =>
+							{
+								_turning = false;
+							});
+					}
+				}
 			}
 
 			//ROTATION-------------------------------------------
