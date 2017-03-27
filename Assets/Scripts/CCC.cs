@@ -14,8 +14,10 @@ public class CCC : NetworkBehaviour
 	public float CameraSpeed = 1f;
 
 	[Header("Mouvement")]
-	[Tooltip("Vitesse frontal au lancement du jeu.")]
+	[Tooltip("Vitesse frontal du joueur. Devrait être la vitesse la plus rapide du joueur au sol.")]
 	public float FrontSpeed = 5f;
+	[Tooltip("Vitesse en recul du joueur.")]
+	public float BackSpeed = 5f;
 	[Tooltip("Vitesse latéral du joueur.")]
 	public float SideSpeed = 3f;
 	public float WallGravityDistance = 0.1f;
@@ -146,23 +148,6 @@ public class CCC : NetworkBehaviour
 				_knockbackVelocity = Vector3.zero;
 			}
 
-			RaycastHit hit;
-			if (!_turning) {
-				if (Physics.Raycast(transform.position, _body.velocity.normalized, out hit, WallGravityDistance * (1 + _body.velocity.magnitude), Ground)) {
-					//EditorApplication.isPaused = true;
-					Debug.DrawRay(transform.position, _body.velocity.normalized, Color.blue, 1);
-					Debug.DrawRay(transform.position, hit.normal, Color.red, 1);
-					if (hit.normal != transform.up) {
-						_turning = true;
-						transform.DOKill();
-						transform.DORotateQuaternion (Quaternion.FromToRotation(transform.up, hit.normal) * transform.rotation, TurnSpeed);
-						DOVirtual.DelayedCall(TurnSpeed, () =>
-							{
-								_turning = false;
-							});
-					}
-				}
-			}
 
 			//ROTATION-------------------------------------------
 
@@ -198,11 +183,14 @@ public class CCC : NetworkBehaviour
 				Vector3 vertical = PlayerRotY.localRotation * Vector3.forward * _player.GetAxisRaw ("Move Vertical");
 				Vector3 horizontal = PlayerRotY.localRotation * Vector3.right * _player.GetAxisRaw ("Move Horizontal");
 
-				_speed = vertical * FrontSpeed + horizontal * SideSpeed;
-
-				float bufferHigherSpeed = FrontSpeed;
-				if (SideSpeed > FrontSpeed) {
-					bufferHigherSpeed = SideSpeed;
+				float bufferHigherSpeed; 
+				if (_player.GetAxisRaw ("Move Vertical") >= 0) {
+					_speed = vertical * FrontSpeed + horizontal * SideSpeed;
+					bufferHigherSpeed = FrontSpeed;
+				}
+				else {
+					_speed = vertical * BackSpeed + horizontal * SideSpeed;
+					bufferHigherSpeed = BackSpeed;
 				}
 
 				if (_speed.magnitude > bufferHigherSpeed) {
@@ -211,7 +199,7 @@ public class CCC : NetworkBehaviour
 
 				_velocity2D = _speed;
 			}
-			//AirControl
+			//AirControl------------------------------------------------------------
 			else {
 				_speed = PlayerRotY.localRotation * Vector3.forward * _player.GetAxisRaw ("Move Vertical") +
 					PlayerRotY.localRotation * Vector3.right * _player.GetAxisRaw ("Move Horizontal");
@@ -240,6 +228,49 @@ public class CCC : NetworkBehaviour
 				}
 
 				_velocity2D = newVelocity;
+			}
+
+
+
+			//GRAVITY BOOT-------------------------------------------------------
+			RaycastHit hit;
+			if (!_turning) {
+
+				Vector3 vertical = PlayerRotY.localRotation * transform.forward * _player.GetAxisRaw ("Move Vertical");
+				Vector3 horizontal = PlayerRotY.localRotation * transform.right * _player.GetAxisRaw ("Move Horizontal");
+				Vector3 directionalInput = vertical + horizontal;
+				Debug.DrawRay (transform.position, directionalInput.normalized, Color.blue, 5);
+
+				if ((_body.velocity.magnitude <= 0.1) || ((_body.velocity - transform.up * _velocityGravity).magnitude <= 0.1)) {
+					
+
+
+					if (Physics.Raycast(transform.position, directionalInput.normalized, out hit, WallGravityDistance * 10, Ground)) {
+						if (hit.normal != transform.up) {
+							_turning = true;
+							transform.DOKill();
+							transform.DORotateQuaternion (Quaternion.FromToRotation(transform.up, hit.normal) * transform.rotation, TurnSpeed);
+							DOVirtual.DelayedCall(TurnSpeed, () =>
+								{
+									_turning = false;
+								});
+						}
+					}
+				}
+				else {
+					if (Physics.Raycast(transform.position, _body.velocity.normalized, out hit, WallGravityDistance * (2.5f + _body.velocity.magnitude), Ground)) {
+						if (hit.normal != transform.up) {
+							_turning = true;
+							transform.DOKill();
+							transform.DORotateQuaternion (Quaternion.FromToRotation(transform.up, hit.normal) * transform.rotation, TurnSpeed);
+							DOVirtual.DelayedCall(TurnSpeed, () =>
+								{
+									_turning = false;
+								});
+						}
+					}
+				}
+
 			}
 
 			//JUMP--------------------------------------------------
