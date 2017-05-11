@@ -47,6 +47,8 @@ public class CCC : NetworkBehaviour
 	[HideInInspector]
 	public float Health;
 	public float KnockbackOnGround = 5;
+	public Material HitMaterial;
+	public float HitVisualDuration = 0.25f;
 
 	[Header("Stuff")]
 	[Tooltip("Radius de la sphère qui check si le Player est au sol.")]
@@ -78,7 +80,9 @@ public class CCC : NetworkBehaviour
 
 	Rigidbody _body;
 	Player _player;
+	Renderer _render;
 
+	Material _myMaterial;
 	Vector3 _speed;
 	Vector3 _velocity2D = Vector3.zero;
 	float _velocityGravity = 0;
@@ -90,9 +94,14 @@ public class CCC : NetworkBehaviour
 	float _yRotation = 0f;
 	float _xRotation = 0f;
 
+	int HitResetCount = 0;
+
 	// Use this for initialization
 	void Start()
 	{
+		_render = GetComponent <Renderer> ();
+		_myMaterial = _render.material;
+
 		if (isLocalPlayer) {
 			Health = HealthTotal;
 			_player = ReInput.players.GetPlayer(0);
@@ -234,12 +243,11 @@ public class CCC : NetworkBehaviour
 
 			//GRAVITY BOOT-------------------------------------------------------
 			RaycastHit hit;
-			if (!_turning) {
+			if (!_turning && !_isGrounded) {
 
 				Vector3 vertical = PlayerRotY.localRotation * transform.forward * _player.GetAxisRaw ("Move Vertical");
 				Vector3 horizontal = PlayerRotY.localRotation * transform.right * _player.GetAxisRaw ("Move Horizontal");
 				Vector3 directionalInput = vertical + horizontal;
-				Debug.DrawRay (transform.position, directionalInput.normalized, Color.blue, 5);
 
 				if ((_body.velocity.magnitude <= 0.1) || ((_body.velocity - transform.up * _velocityGravity).magnitude <= 0.1)) {
 					
@@ -379,8 +387,25 @@ public class CCC : NetworkBehaviour
 	}
 
 	public void TakeKnockback (Vector3 Knockback, float damage) {
-		_knockbackCooldown = KnockbackOnGround;
-		_knockbackVelocity = Knockback;
-		Health -= damage;
+
+		if (isLocalPlayer) {
+			_knockbackCooldown = KnockbackOnGround;
+			_knockbackVelocity = Knockback;
+			Health -= damage;
+		}
+		else {
+			if (HitMaterial != null) {
+				_render.material = HitMaterial;
+				HitResetCount++;
+				DOVirtual.DelayedCall(HitVisualDuration, () =>
+					{
+						HitResetCount--;
+						if (HitResetCount == 0) {
+							_render.material = _myMaterial;
+						}
+					});
+			}
+		}
+
 	}
 }

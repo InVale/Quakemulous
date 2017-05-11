@@ -17,6 +17,8 @@ public class Interactions : NetworkBehaviour {
 		public float ExplosionRadius = 3;
 		public float Knockback = 25;
 		public float Damage = 100;
+		public Material MyMaterial;
+		public Vector3 Scale = new Vector3 (0.1f, 0.15f, 0.1f);
 	}
 
 	public ProjectilLevel[] RocketLevel = new ProjectilLevel[1];
@@ -69,12 +71,20 @@ public class Interactions : NetworkBehaviour {
 	void CmdFire(Vector3 myPosition, Quaternion myRotation, int myLevel)
 	{
 		var _rocket = (GameObject)Instantiate(RocketPrefab, myPosition, myRotation);
+
 		_rocket.transform.GetComponent<Rigidbody>().velocity = _rocket.transform.forward * RocketLevel[myLevel].TravelSpeed;
 		_rocket.transform.rotation *= Quaternion.Euler(90, 0, 0);
-		_rocket.transform.GetComponent<Rocket>().ExplosionRadius = RocketLevel[myLevel].ExplosionRadius;
-		_rocket.transform.GetComponent<Rocket>().Knockback = RocketLevel[myLevel].Knockback;
-		_rocket.transform.GetComponent<Rocket>().Damage = RocketLevel[myLevel].Damage;
-		_rocket.transform.GetComponent<Rocket>().ID = gameObject;
+		_rocket.transform.localScale = RocketLevel [myLevel].Scale;
+
+		if (RocketLevel[myLevel].MyMaterial != null) {
+			_rocket.GetComponent <Renderer>().material = RocketLevel[myLevel].MyMaterial;
+		}
+
+		Rocket rocketScript = _rocket.transform.GetComponent<Rocket> ();
+		rocketScript.ExplosionRadius = RocketLevel[myLevel].ExplosionRadius;
+		rocketScript.Knockback = RocketLevel[myLevel].Knockback;
+		rocketScript.Damage = RocketLevel[myLevel].Damage;
+		rocketScript.ID = gameObject;
 
 		NetworkServer.Spawn(_rocket);
 	}
