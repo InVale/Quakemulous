@@ -43,7 +43,7 @@ public class Rocket : NetworkBehaviour {
 							float _knockbackForce  = Knockback * ((ExplosionRadius - closestPoint.magnitude) / ExplosionRadius);
 							Vector3 _imprimedKnockback = _knockbackForce * _originToPoint.normalized;
 							float _appliedDamage = Damage * ((ExplosionRadius - closestPoint.magnitude) / ExplosionRadius);
-							_sphereHit[i].gameObject.GetComponent<CCC>().TakeKnockback(_imprimedKnockback, _appliedDamage);
+							_sphereHit[i].gameObject.GetComponent<CCC>().TakeKnockback(_imprimedKnockback, _appliedDamage, ID);
 						}
 					}
 				}

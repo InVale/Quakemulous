@@ -5,7 +5,6 @@ using System;
 using Rewired;
 using DG.Tweening;
 using UnityEngine.Networking;
-using UnityEditor;
 
 public class CCC : NetworkBehaviour
 {
@@ -42,10 +41,7 @@ public class CCC : NetworkBehaviour
 	[Tooltip("Limite de combien on peut agir sur sa trajectoire en l'air (sans faire les abus avec la Caméra). Plus elle est élévée et plus le air contrôle est permissif et inversement.")]
 	public float AirControlLimit = 1f;
 
-	[Header("Health")]
-	public float HealthTotal = 150;
-	[HideInInspector]
-	public float Health;
+	[Header("Hit")]
 	public float KnockbackOnGround = 5;
 	public Material HitMaterial;
 	public float HitVisualDuration = 0.25f;
@@ -62,11 +58,11 @@ public class CCC : NetworkBehaviour
 
 	[Header("Prog Stuff")]
 	public LayerMask Ground;
-	public Transform PlayerTiltZ;
 	public Transform PlayerRotY;
 	public Transform CamRotX;
 	public Transform GroundCheck;
 	public Transform Camera;
+	public Renderer ModelRenderer;
 
 	[Header("Status")]
 	[Tooltip("Le Player est-il au sol ?")]
@@ -80,7 +76,7 @@ public class CCC : NetworkBehaviour
 
 	Rigidbody _body;
 	Player _player;
-	Renderer _render;
+	PlayerHealth _life;
 
 	Material _myMaterial;
 	Vector3 _speed;
@@ -99,17 +95,16 @@ public class CCC : NetworkBehaviour
 	// Use this for initialization
 	void Start()
 	{
-		_render = GetComponent <Renderer> ();
-		_myMaterial = _render.material;
+		_myMaterial = ModelRenderer.material;
+		_life = GetComponent<PlayerHealth>();
 
 		if (isLocalPlayer) {
-			Health = HealthTotal;
+
 			_player = ReInput.players.GetPlayer(0);
 			_body = GetComponent<Rigidbody>();
 
 			Cursor.lockState = CursorLockMode.None;
 			Cursor.lockState = CursorLockMode.Locked;
-			_yRotation = _body.rotation.eulerAngles.y;
 
 			Camera = GameObject.FindGameObjectWithTag ("MainCamera").transform;
 			Camera.parent = CamRotX;
@@ -250,9 +245,6 @@ public class CCC : NetworkBehaviour
 				Vector3 directionalInput = vertical + horizontal;
 
 				if ((_body.velocity.magnitude <= 0.1) || ((_body.velocity - transform.up * _velocityGravity).magnitude <= 0.1)) {
-					
-
-
 					if (Physics.Raycast(transform.position, directionalInput.normalized, out hit, WallGravityDistance * 10, Ground)) {
 						if (hit.normal != transform.up) {
 							_turning = true;
@@ -386,26 +378,32 @@ public class CCC : NetworkBehaviour
 
 	}
 
-	public void TakeKnockback (Vector3 Knockback, float damage) {
+	public void TakeKnockback (Vector3 Knockback, float damage, GameObject id) {
 
+		if (isServer) {
+			_life.UpdateHealth(-damage, id);
+			RpcGotHit(Knockback);
+		}
+	}
+
+	[ClientRpc]
+	void RpcGotHit (Vector3 Knockback) {
 		if (isLocalPlayer) {
 			_knockbackCooldown = KnockbackOnGround;
 			_knockbackVelocity = Knockback;
-			Health -= damage;
 		}
 		else {
 			if (HitMaterial != null) {
-				_render.material = HitMaterial;
+				ModelRenderer.material = HitMaterial;
 				HitResetCount++;
 				DOVirtual.DelayedCall(HitVisualDuration, () =>
 					{
 						HitResetCount--;
 						if (HitResetCount == 0) {
-							_render.material = _myMaterial;
+							ModelRenderer.material = _myMaterial;
 						}
 					});
 			}
 		}
-
 	}
 }
