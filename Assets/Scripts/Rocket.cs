@@ -17,12 +17,14 @@ public class Rocket : NetworkBehaviour {
 	[SyncVar]
 	public GameObject ID;
 
-	void OnCollisionEnter (Collision Collision) {
+	void OnTriggerEnter (Collider collider) {
 
-		if (Collision.collider.tag == "Door") {
-			Collision.collider.transform.parent.parent.parent.GetComponent<Door>().OpenDoor();
+		if (collider.tag == "Door") {
+			collider.transform.parent.parent.parent.GetComponent<Door>().OpenDoor();
+
+			Destroy(transform.gameObject);
 		}
-		else {
+		else if (collider.gameObject != ID){
 			Collider[] _sphereHit = Physics.OverlapSphere (Contact.position, ExplosionRadius);
 			if (_sphereHit.Length > 0) 
 			{
@@ -41,13 +43,13 @@ public class Rocket : NetworkBehaviour {
 							float _knockbackForce  = Knockback * ((ExplosionRadius - closestPoint.magnitude) / ExplosionRadius);
 							Vector3 _imprimedKnockback = _knockbackForce * _originToPoint.normalized;
 							float _appliedDamage = Damage * ((ExplosionRadius - closestPoint.magnitude) / ExplosionRadius);
-							_sphereHit[i].gameObject.GetComponent<CCC>().TakeKnockback(_imprimedKnockback, _appliedDamage);
+							_sphereHit[i].gameObject.GetComponent<CCC>().TakeKnockback(_imprimedKnockback, _appliedDamage, ID);
 						}
 					}
 				}
 			}
-		}
 
-		Destroy(transform.gameObject);
+			Destroy(transform.gameObject);
+		}
 	}
 }
